@@ -339,6 +339,38 @@
                 </VBox>
 
             </Tab>
+            <Tab fx:id="tabMisCompras"
+                text="6. Mis compras">
+
+                <VBox spacing="15">
+
+                    <padding>
+                        <Insets top="25"
+                            right="30"
+                            bottom="25"
+                            left="30" />
+                    </padding>
+
+                    <Label text="Mis compras"
+                        style="-fx-font-size: 22px; -fx-font-weight: bold;" />
+
+                    <Label
+                        text="Seleccione una compra pagada para solicitar su cancelacion" />
+
+                    <ListView fx:id="lstComprasCliente"
+                        prefHeight="430" />
+
+                    <Button text="Cancelar compra seleccionada"
+                        onAction="#cancelarCompraSeleccionada"
+                        style="-fx-font-weight: bold;" />
+
+                    <Label
+                        text="Politica de reembolso: mas de 24 horas 100%, entre 2 y 24 horas 80%, menos de 2 horas no se permite cancelar"
+                        wrapText="true" />
+
+                </VBox>
+
+            </Tab>
         </TabPane>
 
     </center>

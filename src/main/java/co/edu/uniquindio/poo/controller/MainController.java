@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.time.LocalDateTime;
 
 public class MainController
         implements ContextoController {
@@ -123,6 +124,12 @@ public class MainController
     @FXML
     private Spinner<Integer> spnPuntosRedimir;
 
+    @FXML
+    private Tab tabMisCompras;
+
+    @FXML
+    private ListView<Compra> lstComprasCliente;
+
     private ContextoApp contexto;
     private Cliente clienteActual;
     private Funcion funcionSeleccionada;
@@ -161,6 +168,51 @@ public class MainController
                 .valueProperty()
                 .addListener(
                         (observable, anterior, nuevo) -> actualizarTotalConPuntos());
+
+        lstComprasCliente.setCellFactory(
+                lista -> new ListCell<>() {
+
+                    @Override
+                    protected void updateItem(
+                            Compra compra,
+                            boolean empty) {
+
+                        super.updateItem(
+                                compra,
+                                empty);
+
+                        if (empty
+                                || compra == null) {
+
+                            setText(null);
+                            return;
+                        }
+
+                        String pelicula = "Sin funcion";
+
+                        if (!compra
+                                .getEntradas()
+                                .isEmpty()) {
+
+                            pelicula = compra
+                                    .getEntradas()
+                                    .get(0)
+                                    .getFuncion()
+                                    .getPelicula()
+                                    .getTitulo();
+                        }
+
+                        setText(
+                                compra.getCodigo()
+                                        + " | "
+                                        + pelicula
+                                        + " | Estado: "
+                                        + compra.getEstado()
+                                        + " | Pagado: "
+                                        + moneda(
+                                                compra.getValorPagado()));
+                    }
+                });
         configurarConversores();
     }
 
@@ -275,7 +327,9 @@ public class MainController
     }
 
     @Override
-    public void setContexto(ContextoApp contexto) {
+    public void setContexto(
+            ContextoApp contexto) {
+
         this.contexto = contexto;
 
         contexto.cargarDatosIniciales();
@@ -285,6 +339,8 @@ public class MainController
         cargarDatosVista();
 
         mostrarEntradasVendidas();
+
+        cargarComprasCliente();
     }
 
     private void buscarCliente() {
@@ -975,6 +1031,7 @@ public class MainController
                     .confirmarCompra(
                             compra,
                             puntosRedimir);
+            cargarComprasCliente();
 
             mostrarInformacion(
                     "Compra realizada",
@@ -1209,6 +1266,77 @@ public class MainController
                                     .getCuentaPuntos()
                                     .consultarDisponibles(
                                             LocalDate.now()));
+        }
+    }
+
+    private void cargarComprasCliente() {
+
+        if (contexto == null
+                || clienteActual == null
+                || lstComprasCliente == null) {
+
+            return;
+        }
+
+        lstComprasCliente.setItems(
+                FXCollections.observableArrayList(
+                        contexto
+                                .getRegistroCompras()
+                                .listarPorCliente(
+                                        clienteActual.getId())));
+    }
+
+    @FXML
+    public void cancelarCompraSeleccionada() {
+
+        Compra compra = lstComprasCliente
+                .getSelectionModel()
+                .getSelectedItem();
+
+        if (compra == null) {
+
+            mostrarError(
+                    "Seleccione una compra");
+
+            return;
+        }
+
+        try {
+
+            double reembolso = contexto
+                    .getServicioCancelaciones()
+                    .cancelarPorCliente(
+                            compra,
+                            LocalDateTime.now());
+
+            actualizarDatosCliente();
+
+            cargarComprasCliente();
+
+            mostrarEntradasVendidas();
+
+            mostrarInformacion(
+                    "Compra cancelada",
+                    "La compra "
+                            + compra.getCodigo()
+                            + " fue cancelada correctamente.\n"
+                            + "Reembolso: "
+                            + moneda(
+                                    reembolso)
+                            + "\n"
+                            + "Estado: "
+                            + compra.getEstado()
+                            + "\n"
+                            + "Saldo actual: "
+                            + moneda(
+                                    clienteActual
+                                            .getTarjetaVirtual()
+                                            .getSaldo()));
+
+        } catch (DominioException exception) {
+
+            mostrarError(
+                    exception.getMessage());
         }
     }
 
