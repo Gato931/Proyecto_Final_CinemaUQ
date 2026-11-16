@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class Compra {
+
     private final String codigo;
     private final Cliente cliente;
     private final LocalDateTime fecha;
@@ -15,9 +16,9 @@ public class Compra {
     private final List<DetalleComboCompra> combos;
     private final Promocion promocion;
     private EstadoCompra estado;
-    private boolean reembolsoRealizado;
 
     private Compra(Builder builder) {
+
         this.codigo = builder.codigo;
         this.cliente = builder.cliente;
         this.fecha = LocalDateTime.now();
@@ -25,26 +26,39 @@ public class Compra {
         this.productos = List.copyOf(builder.productos);
         this.combos = List.copyOf(builder.combos);
         this.promocion = builder.promocion;
-        this.estado = EstadoCompra.PENDIENTE;
-        this.reembolsoRealizado = false;
+        this.estado = new EstadoPendiente();
     }
 
     public double calcularSubtotal() {
+
         double total = 0;
-        for (Entrada entrada : entradas)
+
+        for (Entrada entrada : entradas) {
             total += entrada.getPrecio();
-        for (DetalleProductoCompra detalle : productos)
+        }
+
+        for (DetalleProductoCompra detalle : productos) {
             total += detalle.calcularSubtotal();
-        for (DetalleComboCompra detalle : combos)
+        }
+
+        for (DetalleComboCompra detalle : combos) {
             total += detalle.calcularSubtotal();
+        }
+
         return total;
     }
 
     public double calcularTotal() {
+
         double subtotal = calcularSubtotal();
-        if (promocion == null)
+
+        if (promocion == null) {
             return subtotal;
-        return promocion.aplicar(subtotal, fecha.toLocalDate());
+        }
+
+        return promocion.aplicar(
+                subtotal,
+                fecha.toLocalDate());
     }
 
     public String getCodigo() {
@@ -60,95 +74,170 @@ public class Compra {
     }
 
     public List<Entrada> getEntradas() {
-        return Collections.unmodifiableList(entradas);
+        return Collections.unmodifiableList(
+                entradas);
     }
 
     public List<DetalleProductoCompra> getProductos() {
-        return Collections.unmodifiableList(productos);
+        return Collections.unmodifiableList(
+                productos);
     }
 
     public List<DetalleComboCompra> getCombos() {
-        return Collections.unmodifiableList(combos);
+        return Collections.unmodifiableList(
+                combos);
     }
 
     public Promocion getPromocion() {
         return promocion;
     }
 
-    public EstadoCompra getEstado() {
-        return estado;
+    public String getEstado() {
+        return estado.nombre();
     }
 
-    public void setEstado(EstadoCompra estado) {
+    public void validarConfirmacion() {
+        estado.validarConfirmacion();
+    }
+
+    public void pagar() {
+        estado.pagar(this);
+    }
+
+    public void cancelar() {
+        estado.cancelar(this);
+    }
+
+    public boolean mantieneAsientosOcupados() {
+        return estado.mantieneAsientosOcupados();
+    }
+
+    void cambiarEstado(
+            EstadoCompra estado) {
+
+        if (estado == null) {
+
+            throw new ValidacionException(
+                    "El estado de la compra es obligatorio");
+        }
+
         this.estado = estado;
     }
 
-    public boolean isReembolsoRealizado() {
-        return reembolsoRealizado;
-    }
-
-    public void setReembolsoRealizado(boolean reembolsoRealizado) {
-        this.reembolsoRealizado = reembolsoRealizado;
-    }
-
     public static class Builder {
+
         private String codigo;
         private Cliente cliente;
+
         private final List<Entrada> entradas = new ArrayList<>();
+
         private final List<DetalleProductoCompra> productos = new ArrayList<>();
+
         private final List<DetalleComboCompra> combos = new ArrayList<>();
+
         private Promocion promocion;
 
-        public Builder conCodigo(String codigo) {
+        public Builder conCodigo(
+                String codigo) {
+
             this.codigo = codigo;
+
             return this;
         }
 
-        public Builder conCliente(Cliente cliente) {
+        public Builder conCliente(
+                Cliente cliente) {
+
             this.cliente = cliente;
+
             return this;
         }
 
-        public Builder conEntrada(Entrada entrada) {
-            if (entrada != null)
+        public Builder conEntrada(
+                Entrada entrada) {
+
+            if (entrada != null) {
                 entradas.add(entrada);
+            }
+
             return this;
         }
 
-        public Builder conProducto(Producto producto, int cantidad) {
-            productos.add(new DetalleProductoCompra(producto, cantidad));
+        public Builder conProducto(
+                Producto producto,
+                int cantidad) {
+
+            productos.add(
+                    new DetalleProductoCompra(
+                            producto,
+                            cantidad));
+
             return this;
         }
 
-        public Builder conCombo(Combo combo, int cantidad) {
-            combos.add(new DetalleComboCompra(combo, cantidad));
+        public Builder conCombo(
+                Combo combo,
+                int cantidad) {
+
+            combos.add(
+                    new DetalleComboCompra(
+                            combo,
+                            cantidad));
+
             return this;
         }
 
-        public Builder conPromocion(Promocion promocion) {
+        public Builder conPromocion(
+                Promocion promocion) {
+
             this.promocion = promocion;
+
             return this;
         }
 
         public Compra build() {
-            if (codigo == null || codigo.isBlank())
-                throw new ValidacionException("La compra requiere un codigo");
-            if (cliente == null)
-                throw new ValidacionException("La compra requiere un cliente");
-            if (entradas.isEmpty() && productos.isEmpty() && combos.isEmpty()) {
-                throw new ValidacionException("La compra debe contener al menos un item");
+
+            if (codigo == null ||
+                    codigo.isBlank()) {
+
+                throw new ValidacionException(
+                        "La compra requiere un codigo");
             }
+
+            if (cliente == null) {
+
+                throw new ValidacionException(
+                        "La compra requiere un cliente");
+            }
+
+            if (entradas.isEmpty() &&
+                    productos.isEmpty() &&
+                    combos.isEmpty()) {
+
+                throw new ValidacionException(
+                        "La compra debe contener al menos un item");
+            }
+
             validarUnaMismaFuncion();
+
             return new Compra(this);
         }
 
         private void validarUnaMismaFuncion() {
-            if (entradas.size() <= 1)
+
+            if (entradas.size() <= 1) {
                 return;
-            Funcion funcion = entradas.get(0).getFuncion();
+            }
+
+            Funcion funcion = entradas.get(0)
+                    .getFuncion();
+
             for (Entrada entrada : entradas) {
+
                 if (entrada.getFuncion() != funcion) {
-                    throw new ValidacionException("Una compra solo puede incluir entradas de una misma funcion");
+
+                    throw new ValidacionException(
+                            "Una compra solo puede incluir entradas de una misma funcion");
                 }
             }
         }

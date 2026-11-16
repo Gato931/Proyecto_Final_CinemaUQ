@@ -1,7 +1,14 @@
 package co.edu.uniquindio.poo.model;
 
-public enum EstadoCompra {
-    PENDIENTE,
-    PAGADA,
-    CANCELADA
+public interface EstadoCompra {
+
+    void validarConfirmacion();
+
+    void pagar(Compra compra);
+
+    void cancelar(Compra compra);
+
+    String nombre();
+
+    boolean mantieneAsientosOcupados();
 }
