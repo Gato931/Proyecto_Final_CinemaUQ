@@ -8,24 +8,68 @@ import co.edu.uniquindio.poo.model.EstadoFuncion;
 import co.edu.uniquindio.poo.model.Producto;
 import co.edu.uniquindio.poo.model.excepcion.AsientoNoDisponibleException;
 import co.edu.uniquindio.poo.model.excepcion.ValidacionException;
+import co.edu.uniquindio.poo.model.observador.ObservadorCompra;
+import co.edu.uniquindio.poo.model.observador.SujetoCompra;
 import co.edu.uniquindio.poo.model.repositorio.AlmacenCompras;
 
-import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-public class ServicioCompras {
+public class ServicioCompras
+        implements SujetoCompra {
 
     private final AlmacenCompras almacenCompras;
-    private final CalculadorPuntos calculadorPuntos;
+
+    private final List<ObservadorCompra> observadores = new ArrayList<>();
 
     public ServicioCompras(
-            AlmacenCompras almacenCompras,
-            CalculadorPuntos calculadorPuntos) {
+            AlmacenCompras almacenCompras) {
+
+        if (almacenCompras == null) {
+
+            throw new ValidacionException(
+                    "El almacen de compras es obligatorio");
+        }
 
         this.almacenCompras = almacenCompras;
+    }
 
-        this.calculadorPuntos = calculadorPuntos;
+    @Override
+    public void agregarObservador(
+            ObservadorCompra observador) {
+
+        if (observador == null) {
+
+            throw new ValidacionException(
+                    "El observador es obligatorio");
+        }
+
+        if (!observadores.contains(
+                observador)) {
+
+            observadores.add(
+                    observador);
+        }
+    }
+
+    @Override
+    public void eliminarObservador(
+            ObservadorCompra observador) {
+
+        observadores.remove(
+                observador);
+    }
+
+    private void notificarCompraConfirmada(
+            Compra compra) {
+
+        for (ObservadorCompra observador : observadores) {
+
+            observador.actualizar(
+                    compra);
+        }
     }
 
     public void confirmarCompra(
@@ -39,8 +83,11 @@ public class ServicioCompras {
 
         compra.validarConfirmacion();
 
-        validarEntradas(compra);
-        validarConfiteria(compra);
+        validarEntradas(
+                compra);
+
+        validarConfiteria(
+                compra);
 
         double total = compra.calcularTotal();
 
@@ -51,7 +98,8 @@ public class ServicioCompras {
                         "Pago de compra "
                                 + compra.getCodigo());
 
-        descontarStock(compra);
+        descontarStock(
+                compra);
 
         compra.pagar();
 
@@ -64,14 +112,8 @@ public class ServicioCompras {
                     .ocupar();
         }
 
-        int puntos = calculadorPuntos
-                .calcular(total);
-
-        compra.getCliente()
-                .getCuentaPuntos()
-                .acumular(
-                        puntos,
-                        LocalDate.now());
+        notificarCompraConfirmada(
+                compra);
     }
 
     private void validarEntradas(

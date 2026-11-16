@@ -29,6 +29,7 @@ import co.edu.uniquindio.poo.model.servicio.ServicioPuntos;
 import co.edu.uniquindio.poo.model.servicio.ServicioRegistroUsuarios;
 import co.edu.uniquindio.poo.model.servicio.ServicioTarjetas;
 import co.edu.uniquindio.poo.model.servicio.ServicioTarjetasProxy;
+import co.edu.uniquindio.poo.model.observador.ObservadorPuntos;
 
 import java.time.LocalDate;
 
@@ -72,8 +73,11 @@ public class ContextoApp {
                 registroUsuarios);
 
         servicioCompras = new ServicioCompras(
-                registroCompras,
-                new CalculadorPuntosEstandar());
+                registroCompras);
+
+        servicioCompras.agregarObservador(
+                new ObservadorPuntos(
+                        new CalculadorPuntosEstandar()));
 
         servicioTarjetas = new ServicioTarjetasProxy(
                 new ServicioTarjetas());
