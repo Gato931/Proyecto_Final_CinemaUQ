@@ -117,6 +117,12 @@ public class MainController
     @FXML
     private TextArea txtEstadisticas;
 
+    @FXML
+    private Label lblPuntosDisponibles;
+
+    @FXML
+    private Spinner<Integer> spnPuntosRedimir;
+
     private ContextoApp contexto;
     private Cliente clienteActual;
     private Funcion funcionSeleccionada;
@@ -145,6 +151,16 @@ public class MainController
                         10,
                         1));
 
+        spnPuntosRedimir.setValueFactory(
+                new SpinnerValueFactory.IntegerSpinnerValueFactory(
+                        0,
+                        0,
+                        0));
+
+        spnPuntosRedimir
+                .valueProperty()
+                .addListener(
+                        (observable, anterior, nuevo) -> actualizarTotalConPuntos());
         configurarConversores();
     }
 
@@ -708,6 +724,9 @@ public class MainController
                     "Sin promocion");
         }
 
+        configurarPuntosCompra(
+                total);
+
         lblSubtotal.setText(
                 "Subtotal: "
                         + moneda(subtotal));
@@ -784,6 +803,72 @@ public class MainController
                 resumen.toString());
 
         actualizarDatosCliente();
+    }
+
+    private void configurarPuntosCompra(
+            double totalCompra) {
+
+        int disponibles = clienteActual
+                .getCuentaPuntos()
+                .consultarDisponibles(
+                        LocalDate.now());
+
+        int maximoPorValor = (int) Math.floor(
+                totalCompra / 10.0);
+
+        int maximo = Math.min(
+                disponibles,
+                maximoPorValor);
+
+        spnPuntosRedimir.setValueFactory(
+                new SpinnerValueFactory.IntegerSpinnerValueFactory(
+                        0,
+                        maximo,
+                        0));
+
+        lblPuntosDisponibles.setText(
+                "Puntos disponibles: "
+                        + disponibles);
+    }
+
+    private void actualizarTotalConPuntos() {
+
+        if (contexto == null
+                || funcionSeleccionada == null
+                || spnPuntosRedimir.getValue() == null) {
+
+            return;
+        }
+
+        double subtotal = calcularSubtotal();
+
+        Promocion promocion = obtenerPromocion();
+
+        double total = subtotal;
+
+        if (promocion != null) {
+
+            total = promocion.aplicar(
+                    subtotal,
+                    LocalDate.now());
+        }
+
+        int puntos = spnPuntosRedimir
+                .getValue();
+
+        double descuento = contexto
+                .getServicioPuntos()
+                .calcularValorPuntos(
+                        puntos);
+
+        double valorFinal = Math.max(
+                0,
+                total - descuento);
+
+        lblTotal.setText(
+                "Total a pagar: "
+                        + moneda(
+                                valorFinal));
     }
 
     private double calcularSubtotal() {
@@ -882,19 +967,30 @@ public class MainController
 
             Compra compra = builder.build();
 
+            int puntosRedimir = spnPuntosRedimir
+                    .getValue();
+
             contexto
                     .getServicioCompras()
                     .confirmarCompra(
-                            compra);
+                            compra,
+                            puntosRedimir);
 
             mostrarInformacion(
                     "Compra realizada",
                     "Compra "
                             + compra.getCodigo()
                             + " pagada correctamente.\n"
-                            + "Total: "
+                            + "Puntos utilizados: "
+                            + compra.getPuntosRedimidos()
+                            + "\n"
+                            + "Descuento por puntos: "
                             + moneda(
-                                    compra.calcularTotal()));
+                                    compra.getDescuentoPuntos())
+                            + "\n"
+                            + "Pagado con tarjeta: "
+                            + moneda(
+                                    compra.getValorPagado()));
 
             limpiarCompra();
 
@@ -1105,6 +1201,15 @@ public class MainController
                                 clienteActual
                                         .getTarjetaVirtual()
                                         .getSaldo()));
+        if (lblPuntosDisponibles != null) {
+
+            lblPuntosDisponibles.setText(
+                    "Puntos disponibles: "
+                            + clienteActual
+                                    .getCuentaPuntos()
+                                    .consultarDisponibles(
+                                            LocalDate.now()));
+        }
     }
 
     private String moneda(

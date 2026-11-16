@@ -246,6 +246,19 @@
                             style="-fx-font-weight: bold;" />
 
                     </HBox>
+                    <HBox spacing="15">
+
+                        <Label fx:id="lblPuntosDisponibles"
+                            style="-fx-font-weight: bold;" />
+
+                        <Label text="Puntos a usar:" />
+
+                        <Spinner fx:id="spnPuntosRedimir"
+                            prefWidth="120" />
+
+                    </HBox>
+
+                    <Label text="Cada punto equivale a $10 de descuento" />
 
                     <Separator />
 
