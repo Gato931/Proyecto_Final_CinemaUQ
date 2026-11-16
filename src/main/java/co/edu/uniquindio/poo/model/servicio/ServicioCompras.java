@@ -12,6 +12,7 @@ import co.edu.uniquindio.poo.model.observador.ObservadorCompra;
 import co.edu.uniquindio.poo.model.observador.SujetoCompra;
 import co.edu.uniquindio.poo.model.repositorio.AlmacenCompras;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,17 +24,33 @@ public class ServicioCompras
     private final AlmacenCompras almacenCompras;
 
     private final List<ObservadorCompra> observadores = new ArrayList<>();
+    private final ServicioPuntos servicioPuntos;
 
     public ServicioCompras(
             AlmacenCompras almacenCompras) {
 
-        if (almacenCompras == null) {
+        this(
+                almacenCompras,
+                new ServicioPuntos());
+    }
 
+    public ServicioCompras(
+            AlmacenCompras almacenCompras,
+            ServicioPuntos servicioPuntos) {
+
+        if (almacenCompras == null) {
             throw new ValidacionException(
                     "El almacen de compras es obligatorio");
         }
 
+        if (servicioPuntos == null) {
+            throw new ValidacionException(
+                    "El servicio de puntos es obligatorio");
+        }
+
         this.almacenCompras = almacenCompras;
+
+        this.servicioPuntos = servicioPuntos;
     }
 
     @Override
@@ -75,8 +92,16 @@ public class ServicioCompras
     public void confirmarCompra(
             Compra compra) {
 
-        if (compra == null) {
+        confirmarCompra(
+                compra,
+                0);
+    }
 
+    public void confirmarCompra(
+            Compra compra,
+            int puntosRedimir) {
+
+        if (compra == null) {
             throw new ValidacionException(
                     "La compra es obligatoria");
         }
@@ -91,12 +116,36 @@ public class ServicioCompras
 
         double total = compra.calcularTotal();
 
-        compra.getCliente()
-                .getTarjetaVirtual()
-                .debitar(
-                        total,
-                        "Pago de compra "
-                                + compra.getCodigo());
+        LocalDate fecha = LocalDate.now();
+
+        double descuentoPuntos = servicioPuntos.calcularDescuento(
+                compra.getCliente(),
+                puntosRedimir,
+                total,
+                fecha);
+
+        double valorPagado = total
+                - descuentoPuntos;
+
+        if (valorPagado > 0) {
+
+            compra.getCliente()
+                    .getTarjetaVirtual()
+                    .debitar(
+                            valorPagado,
+                            "Pago de compra "
+                                    + compra.getCodigo());
+        }
+
+        servicioPuntos.redimirPuntos(
+                compra.getCliente(),
+                puntosRedimir,
+                fecha);
+
+        compra.registrarPago(
+                valorPagado,
+                puntosRedimir,
+                descuentoPuntos);
 
         descontarStock(
                 compra);

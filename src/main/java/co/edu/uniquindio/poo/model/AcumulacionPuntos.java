@@ -30,6 +30,10 @@ public class AcumulacionPuntos {
         return usados;
     }
 
+    public void anular() {
+        puntosDisponibles = 0;
+    }
+
     public int getPuntosDisponibles() {
         return puntosDisponibles;
     }

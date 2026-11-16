@@ -16,6 +16,10 @@ public class Compra {
     private final List<DetalleComboCompra> combos;
     private final Promocion promocion;
     private EstadoCompra estado;
+    private int puntosRedimidos;
+    private double descuentoPuntos;
+    private double valorPagado;
+    private AcumulacionPuntos acumulacionPuntosGanados;
 
     private Compra(Builder builder) {
 
@@ -27,6 +31,9 @@ public class Compra {
         this.combos = List.copyOf(builder.combos);
         this.promocion = builder.promocion;
         this.estado = new EstadoPendiente();
+        this.puntosRedimidos = 0;
+        this.descuentoPuntos = 0;
+        this.valorPagado = 0;
     }
 
     public double calcularSubtotal() {
@@ -126,6 +133,48 @@ public class Compra {
         }
 
         this.estado = estado;
+    }
+
+    public void registrarPago(
+            double valorPagado,
+            int puntosRedimidos,
+            double descuentoPuntos) {
+
+        if (valorPagado < 0
+                || puntosRedimidos < 0
+                || descuentoPuntos < 0) {
+
+            throw new ValidacionException(
+                    "Los datos del pago no son validos");
+        }
+
+        this.valorPagado = valorPagado;
+
+        this.puntosRedimidos = puntosRedimidos;
+
+        this.descuentoPuntos = descuentoPuntos;
+    }
+
+    public void registrarAcumulacionPuntosGanados(
+            AcumulacionPuntos acumulacion) {
+
+        this.acumulacionPuntosGanados = acumulacion;
+    }
+
+    public int getPuntosRedimidos() {
+        return puntosRedimidos;
+    }
+
+    public double getDescuentoPuntos() {
+        return descuentoPuntos;
+    }
+
+    public double getValorPagado() {
+        return valorPagado;
+    }
+
+    public AcumulacionPuntos getAcumulacionPuntosGanados() {
+        return acumulacionPuntosGanados;
     }
 
     public static class Builder {

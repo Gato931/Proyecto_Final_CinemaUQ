@@ -1,5 +1,6 @@
 package co.edu.uniquindio.poo.app;
 
+import co.edu.uniquindio.poo.model.AcumulacionPuntos;
 import co.edu.uniquindio.poo.model.Administrador;
 import co.edu.uniquindio.poo.model.Asiento;
 import co.edu.uniquindio.poo.model.Cliente;
@@ -7,6 +8,7 @@ import co.edu.uniquindio.poo.model.Compra;
 import co.edu.uniquindio.poo.model.Entrada;
 import co.edu.uniquindio.poo.model.Funcion;
 import co.edu.uniquindio.poo.model.Pelicula;
+import co.edu.uniquindio.poo.model.Producto;
 import co.edu.uniquindio.poo.model.Sala;
 import co.edu.uniquindio.poo.model.excepcion.DominioException;
 import co.edu.uniquindio.poo.model.observador.ObservadorPuntos;
@@ -288,5 +290,110 @@ public class MainConsola {
                         + cliente
                                 .getTarjetaVirtual()
                                 .getSaldo());
+        System.out.println();
+        System.out.println(
+                "--- PUNTOS Y REDENCION ---");
+
+        Cliente clientePuntos = new Cliente(
+                "C-PUNTOS",
+                "Cliente Puntos",
+                "puntos@cinemauq.com",
+                "1234");
+
+        clientePuntos
+                .getTarjetaVirtual()
+                .recargar(
+                        50000,
+                        "Saldo prueba puntos");
+
+        LocalDate hoy = LocalDate.now();
+
+        AcumulacionPuntos loteVencido = clientePuntos
+                .getCuentaPuntos()
+                .acumular(
+                        100,
+                        hoy.minusYears(2));
+
+        AcumulacionPuntos loteAntiguo = clientePuntos
+                .getCuentaPuntos()
+                .acumular(
+                        300,
+                        hoy.minusMonths(6));
+
+        AcumulacionPuntos loteNuevo = clientePuntos
+                .getCuentaPuntos()
+                .acumular(
+                        500,
+                        hoy);
+
+        System.out.println(
+                "Puntos disponibles antes: "
+                        + clientePuntos
+                                .getCuentaPuntos()
+                                .consultarDisponibles(
+                                        hoy));
+
+        Producto productoPuntos = new Producto(
+                "P-PUNTOS",
+                "Producto prueba puntos",
+                18000,
+                10);
+
+        Compra compraPuntos = new Compra.Builder()
+                .conCodigo(
+                        "COMP-PUNTOS-001")
+                .conCliente(
+                        clientePuntos)
+                .conProducto(
+                        productoPuntos,
+                        1)
+                .build();
+
+        servicioCompras.confirmarCompra(
+                compraPuntos,
+                400);
+
+        System.out.println(
+                "Puntos redimidos: "
+                        + compraPuntos
+                                .getPuntosRedimidos());
+
+        System.out.println(
+                "Descuento por puntos: $"
+                        + compraPuntos
+                                .getDescuentoPuntos());
+
+        System.out.println(
+                "Valor realmente pagado: $"
+                        + compraPuntos
+                                .getValorPagado());
+
+        System.out.println(
+                "Saldo final: $"
+                        + clientePuntos
+                                .getTarjetaVirtual()
+                                .getSaldo());
+
+        System.out.println(
+                "Lote vencido ignorado: "
+                        + loteVencido
+                                .getPuntosDisponibles());
+
+        System.out.println(
+                "Lote antiguo restante: "
+                        + loteAntiguo
+                                .getPuntosDisponibles());
+
+        System.out.println(
+                "Lote nuevo restante: "
+                        + loteNuevo
+                                .getPuntosDisponibles());
+
+        System.out.println(
+                "Puntos disponibles despues: "
+                        + clientePuntos
+                                .getCuentaPuntos()
+                                .consultarDisponibles(
+                                        hoy));
     }
 }

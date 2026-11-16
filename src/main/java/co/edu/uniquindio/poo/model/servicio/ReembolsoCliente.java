@@ -10,7 +10,7 @@ public class ReembolsoCliente
             double valorPagado,
             double horasAntes) {
 
-        if (valorPagado <= 0) {
+        if (valorPagado < 0) {
 
             throw new ValidacionException(
                     "El valor pagado debe ser mayor que cero");

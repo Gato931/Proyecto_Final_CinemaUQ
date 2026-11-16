@@ -1,5 +1,6 @@
 package co.edu.uniquindio.poo.model.observador;
 
+import co.edu.uniquindio.poo.model.AcumulacionPuntos;
 import co.edu.uniquindio.poo.model.Compra;
 import co.edu.uniquindio.poo.model.excepcion.ValidacionException;
 import co.edu.uniquindio.poo.model.servicio.CalculadorPuntos;
@@ -15,7 +16,6 @@ public class ObservadorPuntos
             CalculadorPuntos calculadorPuntos) {
 
         if (calculadorPuntos == null) {
-
             throw new ValidacionException(
                     "El calculador de puntos es obligatorio");
         }
@@ -28,12 +28,15 @@ public class ObservadorPuntos
             Compra compra) {
 
         int puntos = calculadorPuntos.calcular(
-                compra.calcularTotal());
+                compra.getValorPagado());
 
-        compra.getCliente()
+        AcumulacionPuntos acumulacion = compra.getCliente()
                 .getCuentaPuntos()
                 .acumular(
                         puntos,
                         LocalDate.now());
+
+        compra.registrarAcumulacionPuntosGanados(
+                acumulacion);
     }
 }

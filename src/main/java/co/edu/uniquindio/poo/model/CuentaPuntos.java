@@ -10,11 +10,22 @@ import java.util.List;
 public class CuentaPuntos {
     private final List<AcumulacionPuntos> acumulaciones = new ArrayList<>();
 
-    public void acumular(int puntos, LocalDate fecha) {
+    public AcumulacionPuntos acumular(
+            int puntos,
+            LocalDate fecha) {
+
         if (puntos <= 0) {
-            return;
+            return null;
         }
-        acumulaciones.add(new AcumulacionPuntos(puntos, fecha));
+
+        AcumulacionPuntos acumulacion = new AcumulacionPuntos(
+                puntos,
+                fecha);
+
+        acumulaciones.add(
+                acumulacion);
+
+        return acumulacion;
     }
 
     public int consultarDisponibles(LocalDate fecha) {

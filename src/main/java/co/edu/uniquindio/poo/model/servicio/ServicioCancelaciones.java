@@ -11,6 +11,7 @@ import co.edu.uniquindio.poo.model.excepcion.ValidacionException;
 import co.edu.uniquindio.poo.model.repositorio.RegistroCompras;
 
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,6 +20,7 @@ public class ServicioCancelaciones {
 
     private final RegistroCompras registroCompras;
     private final GestorReembolsos gestorReembolsos;
+    private final ServicioPuntos servicioPuntos;
 
     public ServicioCancelaciones(
             RegistroCompras registroCompras) {
@@ -32,6 +34,7 @@ public class ServicioCancelaciones {
 
         this.gestorReembolsos = new GestorReembolsos(
                 new ReembolsoCliente());
+        this.servicioPuntos = new ServicioPuntos();
     }
 
     public double cancelarPorCliente(
@@ -59,7 +62,7 @@ public class ServicioCancelaciones {
                 new ReembolsoCliente());
 
         double valorReembolso = gestorReembolsos.calcular(
-                compra.calcularTotal(),
+                compra.getValorPagado(),
                 horasAntes);
 
         completarCancelacion(
@@ -102,7 +105,7 @@ public class ServicioCancelaciones {
                 compra.validarCancelacion();
 
                 double valorReembolso = gestorReembolsos.calcular(
-                        compra.calcularTotal(),
+                        compra.getValorPagado(),
                         0);
 
                 completarCancelacion(
@@ -123,11 +126,18 @@ public class ServicioCancelaciones {
             double valorReembolso,
             String descripcion) {
 
-        compra.getCliente()
-                .getTarjetaVirtual()
-                .reembolsar(
-                        valorReembolso,
-                        descripcion);
+        if (valorReembolso > 0) {
+
+            compra.getCliente()
+                    .getTarjetaVirtual()
+                    .reembolsar(
+                            valorReembolso,
+                            descripcion);
+        }
+
+        servicioPuntos.revertirPorCancelacion(
+                compra,
+                LocalDate.now());
 
         devolverStock(compra);
 
