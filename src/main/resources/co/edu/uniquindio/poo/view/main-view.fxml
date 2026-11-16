@@ -15,6 +15,9 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.chart.BarChart?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.NumberAxis?>
 
 <BorderPane xmlns:fx="http://javafx.com/fxml"
     fx:controller="co.edu.uniquindio.poo.controller.MainController"
@@ -266,6 +269,63 @@
                 </VBox>
             </Tab>
 
+            <Tab fx:id="tabReportes"
+                text="5. Reportes">
+
+                <VBox spacing="14">
+
+                    <padding>
+                        <Insets top="20"
+                            right="30"
+                            bottom="20"
+                            left="30" />
+                    </padding>
+
+                    <Label text="Reportes y estadisticas"
+                        style="-fx-font-size: 22px; -fx-font-weight: bold;" />
+
+                    <Label
+                        text="Seleccione la informacion que desea visualizar" />
+
+                    <HBox spacing="10">
+
+                        <Button text="Entradas vendidas"
+                            onAction="#mostrarEntradasVendidas" />
+
+                        <Button text="Ingresos por pelicula"
+                            onAction="#mostrarIngresosPorPelicula" />
+
+                        <Button text="Exportar reporte TXT"
+                            onAction="#exportarReporteEstadisticas"
+                            style="-fx-font-weight: bold;" />
+
+                    </HBox>
+
+                    <BarChart fx:id="chartEstadisticas"
+                        prefHeight="390"
+                        animated="false">
+
+                        <xAxis>
+                            <CategoryAxis label="Pelicula" />
+                        </xAxis>
+
+                        <yAxis>
+                            <NumberAxis label="Valor" />
+                        </yAxis>
+
+                    </BarChart>
+
+                    <Label text="Resumen de estadisticas"
+                        style="-fx-font-size: 16px; -fx-font-weight: bold;" />
+
+                    <TextArea fx:id="txtEstadisticas"
+                        editable="false"
+                        prefHeight="150"
+                        wrapText="true" />
+
+                </VBox>
+
+            </Tab>
         </TabPane>
 
     </center>

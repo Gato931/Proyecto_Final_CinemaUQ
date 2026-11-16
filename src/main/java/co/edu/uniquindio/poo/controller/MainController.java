@@ -28,7 +28,10 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.GridPane;
 import javafx.util.StringConverter;
+import javafx.scene.chart.BarChart;
+import javafx.scene.chart.XYChart;
 
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -104,6 +107,15 @@ public class MainController
 
     @FXML
     private TextArea txtResumen;
+
+    @FXML
+    private Tab tabReportes;
+
+    @FXML
+    private BarChart<String, Number> chartEstadisticas;
+
+    @FXML
+    private TextArea txtEstadisticas;
 
     private ContextoApp contexto;
     private Cliente clienteActual;
@@ -247,9 +259,7 @@ public class MainController
     }
 
     @Override
-    public void setContexto(
-            ContextoApp contexto) {
-
+    public void setContexto(ContextoApp contexto) {
         this.contexto = contexto;
 
         contexto.cargarDatosIniciales();
@@ -257,6 +267,8 @@ public class MainController
         buscarCliente();
 
         cargarDatosVista();
+
+        mostrarEntradasVendidas();
     }
 
     private void buscarCliente() {
@@ -895,6 +907,165 @@ public class MainController
 
             mostrarError(
                     "No fue posible completar la compra: "
+                            + exception.getMessage());
+        }
+    }
+
+    @FXML
+    public void mostrarEntradasVendidas() {
+
+        Map<String, Integer> datos = contexto
+                .getServicioEstadisticas()
+                .entradasVendidasPorPelicula();
+
+        cargarGrafico(
+                datos,
+                "Entradas vendidas",
+                "Entradas vendidas por pelicula");
+
+        actualizarTextoEstadisticas();
+    }
+
+    @FXML
+    public void mostrarIngresosPorPelicula() {
+
+        Map<String, Double> datos = contexto
+                .getServicioEstadisticas()
+                .ingresosPorPelicula();
+
+        cargarGrafico(
+                datos,
+                "Ingresos",
+                "Ingresos por pelicula");
+
+        actualizarTextoEstadisticas();
+    }
+
+    private void cargarGrafico(
+            Map<String, ? extends Number> datos,
+            String nombreSerie,
+            String titulo) {
+
+        chartEstadisticas
+                .getData()
+                .clear();
+
+        chartEstadisticas
+                .setTitle(
+                        titulo);
+
+        XYChart.Series<String, Number> serie = new XYChart.Series<>();
+
+        serie.setName(
+                nombreSerie);
+
+        for (Map.Entry<String, ? extends Number> dato : datos.entrySet()) {
+
+            serie.getData()
+                    .add(
+                            new XYChart.Data<>(
+                                    dato.getKey(),
+                                    dato.getValue()));
+        }
+
+        chartEstadisticas
+                .getData()
+                .add(
+                        serie);
+    }
+
+    private void actualizarTextoEstadisticas() {
+
+        StringBuilder texto = new StringBuilder();
+
+        texto.append(
+                "Entradas vendidas por pelicula:\n");
+
+        contexto
+                .getServicioEstadisticas()
+                .entradasVendidasPorPelicula()
+                .forEach(
+                        (pelicula, cantidad) -> texto.append(
+                                "- ")
+                                .append(
+                                        pelicula)
+                                .append(
+                                        ": ")
+                                .append(
+                                        cantidad)
+                                .append(
+                                        "\n"));
+
+        texto.append(
+                "\nIngresos por pelicula:\n");
+
+        contexto
+                .getServicioEstadisticas()
+                .ingresosPorPelicula()
+                .forEach(
+                        (pelicula, ingreso) -> texto.append(
+                                "- ")
+                                .append(
+                                        pelicula)
+                                .append(
+                                        ": ")
+                                .append(
+                                        moneda(
+                                                ingreso))
+                                .append(
+                                        "\n"));
+
+        texto.append(
+                "\nVentas por dia:\n");
+
+        contexto
+                .getServicioEstadisticas()
+                .ventasPorDia()
+                .forEach(
+                        (fecha, total) -> texto.append(
+                                "- ")
+                                .append(
+                                        fecha)
+                                .append(
+                                        ": ")
+                                .append(
+                                        moneda(
+                                                total))
+                                .append(
+                                        "\n"));
+
+        txtEstadisticas.setText(
+                texto.toString());
+    }
+
+    @FXML
+    public void exportarReporteEstadisticas() {
+
+        try {
+
+            Path ruta = contexto
+                    .getServicioReportes()
+                    .guardarReporteEstadisticas(
+                            contexto
+                                    .getServicioEstadisticas(),
+                            Path.of(
+                                    "reportes",
+                                    "reporte-estadisticas.txt"));
+
+            mostrarInformacion(
+                    "Reporte exportado",
+                    "El reporte fue guardado en:\n"
+                            + ruta);
+
+        } catch (DominioException exception) {
+
+            mostrarError(
+                    exception.getMessage());
+
+        } catch (Exception exception) {
+
+            mostrarError(
+                    "No fue posible exportar el reporte: "
                             + exception.getMessage());
         }
     }

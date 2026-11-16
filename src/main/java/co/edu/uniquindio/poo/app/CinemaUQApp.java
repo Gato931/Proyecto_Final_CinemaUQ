@@ -32,7 +32,7 @@ public class CinemaUQApp
                 contexto);
 
         stage.setTitle(
-                "CinemaUQ - Entrega 2");
+                "CinemaUQ");
 
         stage.setScene(
                 new Scene(

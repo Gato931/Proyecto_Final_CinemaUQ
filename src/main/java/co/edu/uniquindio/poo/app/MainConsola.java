@@ -21,7 +21,14 @@ import co.edu.uniquindio.poo.model.servicio.ServicioCompras;
 import co.edu.uniquindio.poo.model.servicio.ServicioRegistroUsuarios;
 import co.edu.uniquindio.poo.model.servicio.ServicioTarjetas;
 import co.edu.uniquindio.poo.model.servicio.ServicioTarjetasProxy;
+import co.edu.uniquindio.poo.model.reporte.ExportadorReporte;
+import co.edu.uniquindio.poo.model.reporte.ReporteConFechaDecorator;
+import co.edu.uniquindio.poo.model.reporte.ReporteConFirmaDecorator;
+import co.edu.uniquindio.poo.model.reporte.ReporteTxt;
+import co.edu.uniquindio.poo.model.reporte.ServicioReportes;
+import co.edu.uniquindio.poo.model.servicio.ServicioEstadisticas;
 
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -189,6 +196,45 @@ public class MainConsola {
                             + exception.getMessage());
         }
 
+        System.out.println();
+        System.out.println(
+                "--- ESTADISTICAS Y REPORTES ---");
+
+        ServicioEstadisticas estadisticas = new ServicioEstadisticas(
+                registroCompras);
+
+        System.out.println(
+                "Entradas vendidas por pelicula: "
+                        + estadisticas
+                                .entradasVendidasPorPelicula());
+
+        System.out.println(
+                "Ingresos por pelicula: "
+                        + estadisticas
+                                .ingresosPorPelicula());
+
+        System.out.println(
+                "Ventas por dia: "
+                        + estadisticas
+                                .ventasPorDia());
+
+        ExportadorReporte exportadorTxt = new ReporteConFirmaDecorator(
+                new ReporteConFechaDecorator(
+                        new ReporteTxt()));
+
+        ServicioReportes servicioReportes = new ServicioReportes(
+                exportadorTxt);
+
+        Path archivoReporte = servicioReportes
+                .guardarReporteEstadisticas(
+                        estadisticas,
+                        Path.of(
+                                "reportes",
+                                "reporte-estadisticas.txt"));
+
+        System.out.println(
+                "Reporte guardado en: "
+                        + archivoReporte);
         System.out.println();
         System.out.println(
                 "--- CANCELACION DEL CLIENTE ---");

@@ -31,6 +31,12 @@ import co.edu.uniquindio.poo.model.servicio.ServicioTarjetas;
 import co.edu.uniquindio.poo.model.servicio.ServicioTarjetasProxy;
 import co.edu.uniquindio.poo.model.observador.ObservadorPuntos;
 import co.edu.uniquindio.poo.model.servicio.ServicioCancelaciones;
+import co.edu.uniquindio.poo.model.reporte.ExportadorReporte;
+import co.edu.uniquindio.poo.model.reporte.ReporteConFechaDecorator;
+import co.edu.uniquindio.poo.model.reporte.ReporteConFirmaDecorator;
+import co.edu.uniquindio.poo.model.reporte.ReporteTxt;
+import co.edu.uniquindio.poo.model.reporte.ServicioReportes;
+import co.edu.uniquindio.poo.model.servicio.ServicioEstadisticas;
 
 import java.time.LocalDate;
 
@@ -63,6 +69,8 @@ public class ContextoApp {
     private final ServicioDisponibilidadAsientos servicioDisponibilidadAsientos;
     private final ServicioPuntos servicioPuntos;
     private final ServicioCancelaciones servicioCancelaciones;
+    private final ServicioEstadisticas servicioEstadisticas;
+    private final ServicioReportes servicioReportes;
 
     public ContextoApp(ConsecutivoCompra consecutivoCompra) {
 
@@ -97,6 +105,15 @@ public class ContextoApp {
         servicioDisponibilidadAsientos = new ServicioDisponibilidadAsientos();
 
         servicioPuntos = new ServicioPuntos();
+        servicioEstadisticas = new ServicioEstadisticas(
+                registroCompras);
+
+        ExportadorReporte exportadorReporte = new ReporteConFirmaDecorator(
+                new ReporteConFechaDecorator(
+                        new ReporteTxt()));
+
+        servicioReportes = new ServicioReportes(
+                exportadorReporte);
     }
 
     public void cargarDatosIniciales() {
@@ -326,5 +343,13 @@ public class ContextoApp {
 
     public ServicioPuntos getServicioPuntos() {
         return servicioPuntos;
+    }
+
+    public ServicioEstadisticas getServicioEstadisticas() {
+        return servicioEstadisticas;
+    }
+
+    public ServicioReportes getServicioReportes() {
+        return servicioReportes;
     }
 }

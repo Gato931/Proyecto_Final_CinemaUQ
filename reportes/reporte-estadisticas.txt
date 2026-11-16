@@ -1,0 +1,13 @@
+Reporte de estadisticas CinemaUQ
+==============================
+Fecha de generacion: 15/11/2026 22:40
+ENTRADAS VENDIDAS POR PELICULA
+Interestelar: 2
+
+INGRESOS POR PELICULA
+Interestelar: $36000.0
+
+VENTAS POR DIA
+2026-11-15: $57600.0
+
+Generado por CinemaUQ
