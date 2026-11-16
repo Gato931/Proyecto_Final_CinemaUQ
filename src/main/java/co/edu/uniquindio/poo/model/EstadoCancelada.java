@@ -11,6 +11,12 @@ public class EstadoCancelada implements EstadoCompra {
     }
 
     @Override
+    public void validarCancelacion() {
+        throw new ValidacionException(
+                "La compra ya fue cancelada");
+    }
+
+    @Override
     public void pagar(Compra compra) {
         throw new ValidacionException(
                 "La compra fue cancelada");

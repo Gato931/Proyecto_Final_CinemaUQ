@@ -9,15 +9,16 @@ import co.edu.uniquindio.poo.model.Funcion;
 import co.edu.uniquindio.poo.model.Pelicula;
 import co.edu.uniquindio.poo.model.Sala;
 import co.edu.uniquindio.poo.model.excepcion.DominioException;
+import co.edu.uniquindio.poo.model.observador.ObservadorPuntos;
 import co.edu.uniquindio.poo.model.repositorio.RegistroCompras;
 import co.edu.uniquindio.poo.model.repositorio.RegistroUsuarios;
 import co.edu.uniquindio.poo.model.servicio.CalculadorPuntosEstandar;
 import co.edu.uniquindio.poo.model.servicio.GestorTarjetas;
+import co.edu.uniquindio.poo.model.servicio.ServicioCancelaciones;
 import co.edu.uniquindio.poo.model.servicio.ServicioCompras;
 import co.edu.uniquindio.poo.model.servicio.ServicioRegistroUsuarios;
 import co.edu.uniquindio.poo.model.servicio.ServicioTarjetas;
 import co.edu.uniquindio.poo.model.servicio.ServicioTarjetasProxy;
-import co.edu.uniquindio.poo.model.observador.ObservadorPuntos;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -39,6 +40,9 @@ public class MainConsola {
         servicioCompras.agregarObservador(
                 new ObservadorPuntos(
                         new CalculadorPuntosEstandar()));
+
+        ServicioCancelaciones servicioCancelaciones = new ServicioCancelaciones(
+                registroCompras);
 
         GestorTarjetas servicioTarjetas = new ServicioTarjetasProxy(
                 new ServicioTarjetas());
@@ -110,7 +114,8 @@ public class MainConsola {
                 LocalDateTime.now()
                         .plusDays(3));
 
-        Asiento asientoA1 = funcion.buscarAsiento("A1");
+        Asiento asientoA1 = funcion.buscarAsiento(
+                "A1");
 
         Entrada entrada = new Entrada(
                 "E-001",
@@ -120,8 +125,10 @@ public class MainConsola {
         Compra compra = new Compra.Builder()
                 .conCodigo(
                         "COMP-PRUEBA-001")
-                .conCliente(cliente)
-                .conEntrada(entrada)
+                .conCliente(
+                        cliente)
+                .conEntrada(
+                        entrada)
                 .build();
 
         servicioCompras.confirmarCompra(
@@ -161,7 +168,8 @@ public class MainConsola {
             Compra repetida = new Compra.Builder()
                     .conCodigo(
                             "COMP-PRUEBA-002")
-                    .conCliente(cliente)
+                    .conCliente(
+                            cliente)
                     .conEntrada(
                             new Entrada(
                                     "E-002",
@@ -178,5 +186,107 @@ public class MainConsola {
                     "Asiento duplicado rechazado: "
                             + exception.getMessage());
         }
+
+        System.out.println();
+        System.out.println(
+                "--- CANCELACION DEL CLIENTE ---");
+
+        double reembolso = servicioCancelaciones
+                .cancelarPorCliente(
+                        compra,
+                        funcion.getFechaHora()
+                                .minusHours(5));
+
+        System.out.println(
+                "Reembolso cliente: $"
+                        + reembolso);
+
+        System.out.println(
+                "Estado compra: "
+                        + compra.getEstado());
+
+        System.out.println(
+                "Saldo despues del reembolso: $"
+                        + cliente
+                                .getTarjetaVirtual()
+                                .getSaldo());
+
+        System.out.println(
+                "A1 disponible despues de cancelar: "
+                        + asientoA1
+                                .estaDisponible());
+
+        System.out.println();
+        System.out.println(
+                "--- CANCELACION TARDIA ---");
+
+        Asiento asientoA2 = funcion.buscarAsiento(
+                "A2");
+
+        Compra compraTardia = new Compra.Builder()
+                .conCodigo(
+                        "COMP-PRUEBA-003")
+                .conCliente(
+                        cliente)
+                .conEntrada(
+                        new Entrada(
+                                "E-003",
+                                funcion,
+                                asientoA2))
+                .build();
+
+        servicioCompras.confirmarCompra(
+                compraTardia);
+
+        try {
+
+            servicioCancelaciones
+                    .cancelarPorCliente(
+                            compraTardia,
+                            funcion.getFechaHora()
+                                    .minusHours(1));
+
+        } catch (DominioException exception) {
+
+            System.out.println(
+                    "Cancelacion tardia rechazada: "
+                            + exception.getMessage());
+        }
+
+        System.out.println(
+                "Estado despues del rechazo: "
+                        + compraTardia.getEstado());
+
+        System.out.println();
+        System.out.println(
+                "--- CANCELACION DEL CINE ---");
+
+        int comprasCanceladas = servicioCancelaciones
+                .cancelarFuncion(
+                        funcion);
+
+        System.out.println(
+                "Compras canceladas por el cine: "
+                        + comprasCanceladas);
+
+        System.out.println(
+                "Estado compra: "
+                        + compraTardia
+                                .getEstado());
+
+        System.out.println(
+                "Estado funcion: "
+                        + funcion.getEstado());
+
+        System.out.println(
+                "A2 disponible despues de cancelar la funcion: "
+                        + asientoA2
+                                .estaDisponible());
+
+        System.out.println(
+                "Saldo final: $"
+                        + cliente
+                                .getTarjetaVirtual()
+                                .getSaldo());
     }
 }

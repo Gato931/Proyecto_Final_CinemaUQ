@@ -104,6 +104,10 @@ public class Compra {
         estado.pagar(this);
     }
 
+    public void validarCancelacion() {
+        estado.validarCancelacion();
+    }
+
     public void cancelar() {
         estado.cancelar(this);
     }

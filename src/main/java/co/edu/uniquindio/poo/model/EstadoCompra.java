@@ -4,6 +4,8 @@ public interface EstadoCompra {
 
     void validarConfirmacion();
 
+    void validarCancelacion();
+
     void pagar(Compra compra);
 
     void cancelar(Compra compra);

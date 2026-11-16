@@ -30,6 +30,7 @@ import co.edu.uniquindio.poo.model.servicio.ServicioRegistroUsuarios;
 import co.edu.uniquindio.poo.model.servicio.ServicioTarjetas;
 import co.edu.uniquindio.poo.model.servicio.ServicioTarjetasProxy;
 import co.edu.uniquindio.poo.model.observador.ObservadorPuntos;
+import co.edu.uniquindio.poo.model.servicio.ServicioCancelaciones;
 
 import java.time.LocalDate;
 
@@ -61,6 +62,7 @@ public class ContextoApp {
     private final ServicioCartelera servicioCartelera;
     private final ServicioDisponibilidadAsientos servicioDisponibilidadAsientos;
     private final ServicioPuntos servicioPuntos;
+    private final ServicioCancelaciones servicioCancelaciones;
 
     public ContextoApp(ConsecutivoCompra consecutivoCompra) {
 
@@ -78,6 +80,9 @@ public class ContextoApp {
         servicioCompras.agregarObservador(
                 new ObservadorPuntos(
                         new CalculadorPuntosEstandar()));
+
+        servicioCancelaciones = new ServicioCancelaciones(
+                registroCompras);
 
         servicioTarjetas = new ServicioTarjetasProxy(
                 new ServicioTarjetas());
@@ -296,6 +301,10 @@ public class ContextoApp {
 
     public ServicioCompras getServicioCompras() {
         return servicioCompras;
+    }
+
+    public ServicioCancelaciones getServicioCancelaciones() {
+        return servicioCancelaciones;
     }
 
     public GestorTarjetas getServicioTarjetas() {

@@ -9,8 +9,15 @@ public class EstadoPendiente implements EstadoCompra {
     }
 
     @Override
+    public void validarCancelacion() {
+        throw new ValidacionException(
+                "No se puede cancelar una compra que no ha sido pagada");
+    }
+
+    @Override
     public void pagar(Compra compra) {
-        compra.cambiarEstado(new EstadoPagada());
+        compra.cambiarEstado(
+                new EstadoPagada());
     }
 
     @Override
